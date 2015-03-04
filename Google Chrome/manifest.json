@@ -1,0 +1,11 @@
+{
+    "manifest_version": 2, "name": "Ahoy!",
+
+    "description": "Visita o ThePirateBay sem qualquer tipo de bloqueios em Portugal. Poder ao povo! \\ Revolução dos Bytes /", "version": "1.0",
+
+    "icons": { "16": "icons/16x16.png", "48": "icons/48x48.png", "128": "icons/128x128.png" },
+    
+    "background": { "scripts": ["background.js"] },
+    
+    "permissions": [ "proxy" ]
+}
