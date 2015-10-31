@@ -1,11 +1,34 @@
 {
-    "manifest_version": 3, "name": "Ahoy!",
-
+    "manifest_version": 3, 
+    "name": "Ahoy!",
     "description": "Visita o ThePirateBay sem qualquer tipo de bloqueios em Portugal. Poder ao povo! \\ Revolução dos Bytes /", "version": "2.0",
+    "icons": { 
+    	"16": "icons/16x16.png", 
+    	"48": "icons/48x48.png",
+    	"128": "icons/128x128.png" 
+    	},
+    "background": { 
+    	"scripts": [
+    		"background.js"
+    	] },
 
-    "icons": { "16": "icons/16x16.png", "48": "icons/48x48.png", "128": "icons/128x128.png" },
+    "page_action": {
+          "default_icon": {                    // optional
+            "19": "icons/16x16.png",           // optional
+            "48": "images/48x48.png"            // optional
+          },
+          "default_title": "Ahoy!",      // optional; shown in tooltip
+          "default_popup": "popup.html"        // optional
+        },
     
-    "background": { "scripts": ["background.js"] },
-    
-    "permissions": [ "proxy", "alarms", "storage", "tabs", "webRequest", "webNavigation", "webRequestBlocking", "*://*/", "http://ahoy.app:8000/" ]
+    "permissions": [ 
+    	"proxy", 
+    	"alarms", 
+    	"storage", 
+    	"tabs", 
+    	"webRequest", 
+    	"webNavigation", 
+    	"webRequestBlocking", 
+    	"*://*/", 
+    	"http://ahoy.app:8000/" ]
 }

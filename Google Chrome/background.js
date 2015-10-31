@@ -39,6 +39,8 @@ update_proxy();
 function setup_listeners() {
 	chrome.webRequest.onBeforeRequest.addListener(
 		function(details) {
+			//Turn the page option on
+			chrome.pageAction.show( details.tabId );
 			proxy_turn_on();
 		},
         {urls: chrome.webreq_filter_list},
@@ -148,8 +150,9 @@ chrome.alarms.create( 'update_sites_and_proxy', { delayInMinutes: 30, periodInMi
 // Handle the alarms
 
 chrome.alarms.onAlarm.addListener( function (alarm) {
-	if( alarm.name == 'update_sites' ) {
+	if( alarm.name == 'update_sites_and_proxy' ) {
 		update_site_list();
+		update_proxy();
 	}
 });
 
