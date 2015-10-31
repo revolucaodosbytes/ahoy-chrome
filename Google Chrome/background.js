@@ -1,49 +1,65 @@
+/**
+ * DEFAULTS
+ */
+chrome.proxy_addr = "162.208.49.45:3127"; //default proxy
+chrome.webreq_filter_list = [];
+chrome.webnav_filter_list = [];
 
-chrome.storage.sync.get( "sites_list", function( result) {
+chrome.storage.sync.get( [ "sites_list", "proxy_addr" ], function( result) {
 	chrome.sites_list = result.sites_list;
+	chrome.proxy_addr = result.proxy_addr[0];
+
+	// Create the filter to be used in the onBeforeRequest
+	chrome.webreq_filter_list = [];
+
+	for ( var siteid in chrome.sites_list ) {
+		var site = chrome.sites_list[siteid];
+		chrome.webreq_filter_list.push( "*://" + site + "/*" );
+		chrome.webreq_filter_list.push( "*://*." + site + "/*" );
+	}
+
+	// Create the filter to be used in the onComplete and onErrorOccurred listeners
+	chrome.webnav_filter_list = [];
+
+	for ( var siteid in chrome.sites_list ) {
+		var site = chrome.sites_list[siteid];
+		chrome.webnav_filter_list.push( { "hostContains": site } );
+	}
+
+	// Setup the listeners
+	setup_listeners();
 })
 
 // Set up the local storage
 update_site_list();
 
-chrome.webRequest.onBeforeRequest.addListener(
-	function(details) {
+// Get a proxy
+update_proxy();
 
-		//console.log(chrome.sites_list);
-		for( var siteid in chrome.sites_list ) {
-			var site = chrome.sites_list[siteid];
-			if ( details.url.indexOf(site) != -1 ) {
-				console.log("encontrei o " + site);
-				proxy_turn_on();
-				break;
-			}
-			//console.log(site);
-		}
-
-	},
-        {urls: ["<all_urls>"]},
+function setup_listeners() {
+	chrome.webRequest.onBeforeRequest.addListener(
+		function(details) {
+			proxy_turn_on();
+		},
+        {urls: chrome.webreq_filter_list},
         ["blocking"]
-)
+	)
 
-function restore_pac_callback( details ) {
-	console.log("Desactivar pac");
+	function restore_pac_callback( details ) {
+		// Make sure that the PAC settings are applied with a small delay
+		setTimeout( function() {
+			console.log( "Reverting proxy settings");
+			chrome.proxy.settings.clear( { scope: 'regular' } );
+		}, 2000 );
+	}
 
-	// Make sure that the PAC settings are applied with a small delay
-	setTimeout( function() {}, 2000 );
+	chrome.webNavigation.onCompleted.addListener( restore_pac_callback, {url: chrome.webnav_filter_list} );
+	chrome.webNavigation.onErrorOccurred.addListener( restore_pac_callback, {url: chrome.webnav_filter_list} );
 
-	chrome.proxy.settings.clear( { scope: 'regular' } );
 }
 
-chrome.webNavigation.onCompleted.addListener( restore_pac_callback, {url: [ 
-        		{ "hostContains": "omeuip.com" }
-        	]} );
-chrome.webNavigation.onErrorOccurred.addListener( restore_pac_callback, {url: [ 
-        		{ "hostContains": "omeuip.com" }
-        	]} );
 
 function proxy_turn_on() {
-	// Validar se o URL é valido
-	console.log("Site correct, activar proxy");
 
 	// Mudar o proxy
 	var config = {
@@ -60,22 +76,19 @@ function proxy_turn_on() {
 	};
 
 	// Setup new settings for the appropriate window.
-	chrome.proxy.settings.set(proxySettings, function() {});
-	
-	chrome.proxy.settings.get(
-      {'incognito': false},
-      function(config) {console.log(JSON.stringify(config));});
 
 	// Make sure that the PAC settings are applied with a small delay
-	setTimeout( function() {}, 2000 );
+	sleep(100);
+	console.log("Applying proxy settings");
+	chrome.proxy.settings.set(proxySettings, function() {} );
 }
 
 function generate_pac() {
 	var pac = 	"function FindProxyForURL(url, host) {\n";
 	for( var siteid in chrome.sites_list ) {
 		var site = chrome.sites_list[siteid];
-		 pac += "  if (host == '" + site + "')\n" +
-         		"    return 'PROXY 162.208.49.45:3127';\n";
+		 pac += "  if (host == '" + site + "' || host == 'www." + site + "')\n" +
+         		"    return 'PROXY " + chrome.proxy_addr + "';\n";
 		//console.log(site);
 	}
     pac += 	"  return 'DIRECT';\n" +
@@ -96,6 +109,26 @@ function update_site_list( block ) {
 	    // JSON.parse does not evaluate the attacker's scripts.
 	    var resp = JSON.parse(xhr.responseText);
 	    chrome.storage.sync.set( { "sites_list": resp } );
+	    chrome.sites_list = resp;
+	  }
+	}
+	xhr.send();
+}
+
+function update_proxy( block ) { 
+	// default value
+	if (typeof(block)==='undefined') block = false;
+
+	var xhr = new XMLHttpRequest();
+	xhr.open("GET", "http://ahoy.app:8000/api/getProxy", ! block );
+	xhr.onreadystatechange = function() {
+	  if (xhr.readyState == 4) {
+	 	console.log("Got a new Proxy.");
+	    // JSON.parse does not evaluate the attacker's scripts.
+	    var resp = JSON.parse(xhr.responseText);
+	    console.log(resp);
+	    chrome.storage.sync.set( { "proxy_addr": resp } );
+	    chrome.proxy_addr = resp[0];
 	  }
 	}
 	xhr.send();
@@ -110,7 +143,7 @@ update_site_list();
  */
 
 // Create the periodic alarm to fetch new sites
-chrome.alarms.create( 'update_sites', { delayInMinutes: 30, periodInMinutes: 30 } )
+chrome.alarms.create( 'update_sites_and_proxy', { delayInMinutes: 30, periodInMinutes: 30 } )
 
 // Handle the alarms
 
@@ -121,7 +154,14 @@ chrome.alarms.onAlarm.addListener( function (alarm) {
 });
 
 
-/*
-
-
-*/
+/**
+ * auxiliar functions
+ */
+function sleep(milliseconds) {
+  var start = new Date().getTime();
+  for (var i = 0; i < 1e7; i++) {
+    if ((new Date().getTime() - start) > milliseconds){
+      break;
+    }
+  }
+}
