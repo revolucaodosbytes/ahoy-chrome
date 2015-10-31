@@ -59,6 +59,12 @@ function setup_listeners() {
 	chrome.webNavigation.onCompleted.addListener( restore_pac_callback, {url: chrome.webnav_filter_list} );
 	chrome.webNavigation.onErrorOccurred.addListener( restore_pac_callback, {url: chrome.webnav_filter_list} );
 	chrome.webRequest.onErrorOccurred.addListener( change_proxy_if_connection_fails, {urls: chrome.webreq_filter_list } );
+
+	chrome.runtime.onInstalled.addListener( function( details ) {
+		// Make sure the plugins fetch for new information when it's installed/updated
+		update_site_list();
+		update_proxy();
+	})
 }
 
 
@@ -144,9 +150,6 @@ function update_proxy( block ) {
 	xhr.send();
 }
 
-// Make sure that everything is up to date
-update_site_list();
-
 /**
  * Alarms - Periodic Tasks
  * Updating the Local Storage with the latest info
@@ -176,3 +179,4 @@ function sleep(milliseconds) {
     }
   }
 }
+
