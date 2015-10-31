@@ -1,6 +1,7 @@
 /**
  * DEFAULTS
  */
+chrome.sites_list = [ 'thepiratebay.org' ];
 chrome.proxy_addr = "162.208.49.45:3127"; //default proxy
 chrome.webreq_filter_list = [];
 chrome.webnav_filter_list = [];
@@ -57,9 +58,15 @@ function setup_listeners() {
 
 	chrome.webNavigation.onCompleted.addListener( restore_pac_callback, {url: chrome.webnav_filter_list} );
 	chrome.webNavigation.onErrorOccurred.addListener( restore_pac_callback, {url: chrome.webnav_filter_list} );
-
+	chrome.webRequest.onErrorOccurred.addListener( change_proxy_if_connection_fails, {urls: chrome.webreq_filter_list } );
 }
 
+
+function change_proxy_if_connection_fails( details ) {
+	if ( details.error == "net::ERR_PROXY_CONNECTION_FAILED" ) {
+		update_proxy();
+	}
+}
 
 function proxy_turn_on() {
 
@@ -104,7 +111,7 @@ function update_site_list( block ) {
 	if (typeof(block)==='undefined') block = false;
 
 	var xhr = new XMLHttpRequest();
-	xhr.open("GET", "http://ahoy.app:8000/api/sites", ! block );
+	xhr.open("GET", "http://46.101.76.116/api/sites", ! block );
 	xhr.onreadystatechange = function() {
 	  if (xhr.readyState == 4) {
 	 	console.log("Site list sucessfully retrived.");
@@ -122,15 +129,16 @@ function update_proxy( block ) {
 	if (typeof(block)==='undefined') block = false;
 
 	var xhr = new XMLHttpRequest();
-	xhr.open("GET", "http://ahoy.app:8000/api/getProxy", ! block );
+	xhr.open("GET", "http://46.101.76.116/api/getProxy", ! block );
 	xhr.onreadystatechange = function() {
 	  if (xhr.readyState == 4) {
 	 	console.log("Got a new Proxy.");
 	    // JSON.parse does not evaluate the attacker's scripts.
 	    var resp = JSON.parse(xhr.responseText);
-	    console.log(resp);
-	    chrome.storage.sync.set( { "proxy_addr": resp } );
-	    chrome.proxy_addr = resp[0];
+	    var server = resp.host + ":" + resp.port;
+	    console.log(server);
+	    chrome.storage.sync.set( { "proxy_addr": server } );
+	    chrome.proxy_addr = server;
 	  }
 	}
 	xhr.send();
