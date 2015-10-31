@@ -8,7 +8,7 @@ Basta instalar e consegues visitar todos os sites bloqueados novamente! É escol
 
 Chega de bloqueios! Queremos uma internet aberta.
 
-#RevoluçãodosBytes
+/#RevoluçãodosBytes
 
 ![alt text](http://rafaelalmeida.pt/wp-content/uploads/2015/03/ahoy_git.png "Ahoy!")
 
