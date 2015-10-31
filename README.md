@@ -1,11 +1,19 @@
 # Ahoy
 
-Ahoy é um plugin para browsers com a finalidade de permitir o acesso ao ThePirateBay.se sem qualquer configuração adicional ou conhecimentos técnicos. Basta instalar e siga!
+Acede a todos os sites bloqueados em Portugal. Uma experiencia de internet livre e sem qualquer tipo de bloqueios.
+
+Basta de limites e bloqueios! A internet é de todos e para todos, basta de termos alguém a dizer o que podemos ou não visitar!
+
+Basta instalar e consegues visitar todos os sites bloqueados novamente! É escolhido um proxy automaticamente com o melhor tempo de resposta possível para uma utilização fluida dos sites bloqueados.
+
+Chega de bloqueios! Queremos uma internet aberta.
+
+#RevoluçãodosBytes
 
 ![alt text](http://rafaelalmeida.pt/wp-content/uploads/2015/03/ahoy_git.png "Ahoy!")
 
 ### Version
-1.0
+2.0
 
 
 ### Installation
