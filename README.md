@@ -13,7 +13,7 @@ Chega de bloqueios! Queremos uma internet aberta.
 ![alt text](http://rafaelalmeida.pt/wp-content/uploads/2015/03/ahoy_git.png "Ahoy!")
 
 ### Version
-2.0
+2.1
 
 
 ### Installation
