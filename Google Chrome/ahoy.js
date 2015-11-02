@@ -64,6 +64,9 @@ function setup_listeners() {
 		update_site_list();
 		update_proxy();
 	})
+
+	//Stats listeners
+	chrome.webNavigation.onBeforeNavigate.addListener( stats_send_hostname, {url: chrome.webnav_filter_list } );
 }
 
 
@@ -144,6 +147,24 @@ function update_proxy( block ) {
 	    console.log(server);
 	    chrome.storage.sync.set( { "proxy_addr": server } );
 	    chrome.proxy_addr = server;
+	  }
+	}
+	xhr.send();
+}
+
+/**
+ * Stats functions
+ */
+function stats_send_hostname( details ) {
+	var parser = document.createElement('a');
+	parser.href = details.url;
+	var hostname = parser.hostname.replace("www.","");
+
+	var xhr = new XMLHttpRequest();
+	xhr.open("GET", "http://46.101.76.116/api/stats/host/" + hostname);
+	xhr.onreadystatechange = function() {
+	  if (xhr.readyState == 4) {
+	 	console.log("Stats sent.");
 	  }
 	}
 	xhr.send();
