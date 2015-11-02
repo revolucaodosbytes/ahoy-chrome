@@ -11,7 +11,7 @@ $(document).ready( function() {
             return false;
         };
 
-        update_proxy();
+        Ahoy.update_proxy();
         $(this).attr('disabled', "");
         
         $(".info").hide();
@@ -19,7 +19,7 @@ $(document).ready( function() {
 
         setTimeout( function() {
 
-            $("#proxyaddr").text( chrome.proxy_addr ); 
+            $("#proxyaddr").text( Ahoy.proxy_addr ); 
             $("#forcarProxy").attr('disabled', false);
 
             $(".info").show();
@@ -34,7 +34,7 @@ $(document).ready( function() {
             return false;
         };
 
-        update_site_list();
+        Ahoy.update_site_list();
         $(this).attr('disabled', "");
         
         $(".waiting").show();

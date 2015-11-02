@@ -1,11 +1,7 @@
-// Set up the local storage
-update_site_list();
 
-// Get a proxy
-update_proxy();
 
 // Initialize the ahoy
-init_ahoy();
+Ahoy.init();
 
 /**
  * Alarms - Periodic Tasks
@@ -19,8 +15,8 @@ chrome.alarms.create( 'update_sites_and_proxy', { delayInMinutes: 30, periodInMi
 
 chrome.alarms.onAlarm.addListener( function (alarm) {
 	if( alarm.name == 'update_sites_and_proxy' ) {
-		update_site_list();
-		update_proxy();
+		Ahoy.update_site_list();
+		Ahoy.update_proxy();
 	}
 });
 
