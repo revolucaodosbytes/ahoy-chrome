@@ -1,4 +1,3 @@
-
 $(document).ready( function() {
 
     chrome.storage.sync.get( [ "proxy_addr" ], function( result) { 
@@ -11,7 +10,7 @@ $(document).ready( function() {
             return false;
         };
 
-        Ahoy.update_proxy();
+        chrome.extension.getBackgroundPage().ahoy.update_proxy();
         $(this).attr('disabled', "");
         
         $(".info").hide();
@@ -19,7 +18,7 @@ $(document).ready( function() {
 
         setTimeout( function() {
 
-            $("#proxyaddr").text( Ahoy.proxy_addr ); 
+            $("#proxyaddr").text( chrome.extension.getBackgroundPage().ahoy.proxy_addr ); 
             $("#forcarProxy").attr('disabled', false);
 
             $(".info").show();
@@ -34,7 +33,7 @@ $(document).ready( function() {
             return false;
         };
 
-        Ahoy.update_site_list();
+        chrome.extension.getBackgroundPage().ahoy.update_site_list();
         $(this).attr('disabled', "");
         
         $(".waiting").show();

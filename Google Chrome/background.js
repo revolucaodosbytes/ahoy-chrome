@@ -1,7 +1,17 @@
-
+/**
+ * auxiliar functions
+ */
+function sleep(milliseconds) {
+  var start = new Date().getTime();
+  for (var i = 0; i < 1e7; i++) {
+    if ((new Date().getTime() - start) > milliseconds){
+      break;
+    }
+  }
+}
 
 // Initialize the ahoy
-Ahoy.init();
+var ahoy = new Ahoy();
 
 /**
  * Alarms - Periodic Tasks
@@ -20,16 +30,4 @@ chrome.alarms.onAlarm.addListener( function (alarm) {
 	}
 });
 
-
-/**
- * auxiliar functions
- */
-function sleep(milliseconds) {
-  var start = new Date().getTime();
-  for (var i = 0; i < 1e7; i++) {
-    if ((new Date().getTime() - start) > milliseconds){
-      break;
-    }
-  }
-}
 
