@@ -25,8 +25,8 @@ chrome.alarms.create( 'update_sites_and_proxy', { delayInMinutes: 30, periodInMi
 
 chrome.alarms.onAlarm.addListener( function (alarm) {
 	if( alarm.name == 'update_sites_and_proxy' ) {
-		Ahoy.update_site_list();
-		Ahoy.update_proxy();
+		ahoy.update_site_list();
+		ahoy.update_proxy();
 	}
 });
 
