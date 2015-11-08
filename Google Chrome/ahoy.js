@@ -67,7 +67,7 @@ Ahoy.prototype.generate_pac = function () {
 Ahoy.prototype.update_site_list = function () { 
 
 	var xhr = new XMLHttpRequest();
-	xhr.open("GET", "http://ahoy.app:8000/api/sites" );
+	xhr.open("GET", "http://46.101.76.116/api/sites" );
 	xhr.onreadystatechange = function() {
 	  if (xhr.readyState == 4) {
 	 	console.log("Site list sucessfully retrived.");
