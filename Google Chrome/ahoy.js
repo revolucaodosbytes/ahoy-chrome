@@ -10,13 +10,14 @@ var Ahoy = function() {
 
 	// Update the info with the latest content from the Local Storage
 	chrome.storage.sync.get( [ "sites_list", "proxy_addr" ],function( result) {
+		if (result.sites_list !== undefined)
+			this.sites_list = result.sites_list;
 
-		this.sites_list = result.sites_list;
-		this.proxy_addr = result.proxy_addr;
+		if (result.proxy_addr !== undefined)
+			this.proxy_addr = result.proxy_addr;
 
 		// Init callbacks
 		this.init_callbacks();
-		this.init_stats();
 		this.init_events();
 
 	}.bind(this));
@@ -88,25 +89,25 @@ Ahoy.prototype.update_site_list = function () {
 
 Ahoy.prototype.update_proxy = function () { 
 
-		var xhr = new XMLHttpRequest();
-		xhr.open("GET", "http://46.101.76.116/api/getProxy" );
-		xhr.onreadystatechange = function() {
-		  if (xhr.readyState == 4) {
-		 	console.log("Got a new Proxy.");
-		    // JSON.parse does not evaluate the attacker's scripts.
-		    var resp = JSON.parse(xhr.responseText);
-		    var server = resp.host + ":" + resp.port;
+	var xhr = new XMLHttpRequest();
+	xhr.open("GET", "http://46.101.76.116/api/getProxy" );
+	xhr.onreadystatechange = function() {
+	  if (xhr.readyState == 4) {
+	 	console.log("Got a new Proxy.");
+	    // JSON.parse does not evaluate the attacker's scripts.
+	    var resp = JSON.parse(xhr.responseText);
+	    var server = resp.host + ":" + resp.port;
 
-		    // Dispatch the event
-		    document.dispatchEvent( new CustomEvent( "onProxyUpdated", { 
-		    	'detail': { 
-		    		proxy_addr: server
-		    	},
-		    }));
+	    // Dispatch the event
+	    document.dispatchEvent( new CustomEvent( "onProxyUpdated", { 
+	    	'detail': { 
+	    		proxy_addr: server
+	    	},
+	    }));
 
-		  }
-		}.bind(this);
-		xhr.send();
+	  }
+	}.bind(this);
+	xhr.send();
 
 };
 
@@ -116,6 +117,7 @@ Ahoy.prototype.update_proxy = function () {
 
 Ahoy.prototype.init_callbacks = function( ) {
 
+	console.log("Initializing callbacks");
 	// Check if the callbacks filters have been generated
 	if( this.webreq_filter_list.length === 0 || this.webnav_filter_list.length === 0) {
 		this.setup_callback_filters();
@@ -131,6 +133,9 @@ Ahoy.prototype.init_callbacks = function( ) {
 	chrome.webNavigation.onErrorOccurred.addListener( this.restore_pac.bind(this), {url: this.webnav_filter_list} );
 	chrome.webRequest.onErrorOccurred.addListener( this.change_proxy_if_connection_fails.bind(this), {urls: this.webreq_filter_list } );
 
+	// Stats
+	chrome.webNavigation.onBeforeNavigate.addListener( this.send_hostname, {url: this.webnav_filter_list } );
+
 };
 
 Ahoy.prototype.update_callbacks = function() {
@@ -142,6 +147,9 @@ Ahoy.prototype.update_callbacks = function() {
 	chrome.webNavigation.onCompleted.removeListener(this.restore_pac);
 	chrome.webNavigation.onErrorOccurred.removeListener(this.restore_pac);
 	chrome.webRequest.onErrorOccurred.removeListener(this.change_proxy_if_connection_fails);
+
+	// Stats
+	chrome.webNavigation.onBeforeNavigate.removeListener(this.send_hostname);
 
 	// Recreate new callbacks
 	this.init_callbacks();
@@ -184,11 +192,6 @@ Ahoy.prototype.after_update = function( details ) {
 };
 
 
-Ahoy.prototype.init_stats = function () {
-
-	chrome.webNavigation.onBeforeNavigate.addListener( this.send_hostname, {url: this.webnav_filter_list } );
-
-};
 
 /**
  * Stats functions
