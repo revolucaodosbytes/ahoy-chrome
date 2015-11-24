@@ -14,14 +14,14 @@
     		"background.js"
     	] },
 
-    "page_action": {
-          "default_icon": {        
-            "48": "icons/48x48.png"         
+    "browser_action": {
+          "default_icon": {
+    		"48": "icons/48x48.png"         
           },
-          "default_title": "Ahoy!",
-          "default_popup": "popup.html"   
+          "default_title": "Ahoy",
+          "default_popup": "views/popup.html"
         },
-    
+
     "permissions": [ 
     	"proxy", 
     	"alarms", 

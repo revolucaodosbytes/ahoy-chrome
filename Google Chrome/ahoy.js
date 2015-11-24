@@ -1,6 +1,12 @@
 
 var Ahoy = function() {
 	/**
+	 * CONFIGS
+	 */
+	//this.api_url = "http://46.101.64.62";
+	this.api_url = "http://ahoy.app:8000";
+
+	/**
 	 * DEFAULTS
 	 */
 	this.sites_list = ['thepiratebay.org'];
@@ -52,6 +58,15 @@ Ahoy.prototype.update_proxy_settings = function () {
 
 };
 
+Ahoy.prototype.fix_index_html_after_proxied = function(sender) {
+
+	if ( sender.url.indexOf("index.html") === -1 )
+		return;
+
+	console.log("Detecting a index.html page, redirecting to the non index.html");
+	return {redirectUrl: sender.url.replace("index.html", "") };
+};
+
 Ahoy.prototype.generate_pac = function () {
 	var pac = 	"function FindProxyForURL(url, host) {\n";
 	for( var siteid in this.sites_list ) {
@@ -68,7 +83,7 @@ Ahoy.prototype.generate_pac = function () {
 Ahoy.prototype.update_site_list = function () { 
 
 	var xhr = new XMLHttpRequest();
-	xhr.open("GET", "http://46.101.76.116/api/sites" );
+	xhr.open("GET", this.api_url + "/api/sites" );
 	xhr.onreadystatechange = function() {
 	  if (xhr.readyState == 4) {
 	 	console.log("Site list sucessfully retrived.");
@@ -87,10 +102,10 @@ Ahoy.prototype.update_site_list = function () {
 
 };
 
-Ahoy.prototype.update_proxy = function () { 
+Ahoy.prototype.update_proxy = function ( forceReload ) { 
 
 	var xhr = new XMLHttpRequest();
-	xhr.open("GET", "http://46.101.76.116/api/getProxy" );
+	xhr.open("GET", this.api_url + "/api/getProxy" );
 	xhr.onreadystatechange = function() {
 	  if (xhr.readyState == 4) {
 	 	console.log("Got a new Proxy.");
@@ -101,7 +116,8 @@ Ahoy.prototype.update_proxy = function () {
 	    // Dispatch the event
 	    document.dispatchEvent( new CustomEvent( "onProxyUpdated", { 
 	    	'detail': { 
-	    		proxy_addr: server
+	    		proxy_addr: server,
+	    		forceReload: forceReload
 	    	},
 	    }));
 
@@ -128,13 +144,17 @@ Ahoy.prototype.init_callbacks = function( ) {
         {urls: this.webreq_filter_list},
         ["blocking"]
 	);
+	chrome.webRequest.onBeforeRequest.addListener( this.fix_index_html_after_proxied.bind(this), 
+		{urls: this.webreq_filter_list},
+        ["blocking"]
+    );
 
 	chrome.webNavigation.onCompleted.addListener( this.restore_pac.bind(this), {url: this.webnav_filter_list} );
 	chrome.webNavigation.onErrorOccurred.addListener( this.restore_pac.bind(this), {url: this.webnav_filter_list} );
 	chrome.webRequest.onErrorOccurred.addListener( this.change_proxy_if_connection_fails.bind(this), {urls: this.webreq_filter_list } );
 
 	// Stats
-	chrome.webNavigation.onBeforeNavigate.addListener( this.send_hostname, {url: this.webnav_filter_list } );
+	chrome.webNavigation.onBeforeNavigate.addListener( this.send_hostname.bind(this), {url: this.webnav_filter_list } );
 
 };
 
@@ -144,6 +164,7 @@ Ahoy.prototype.update_callbacks = function() {
 	console.log("Updating old callbacks...");
 
 	chrome.webRequest.onBeforeRequest.removeListener(this.proxy_turn_on_webrequest);
+	chrome.webRequest.onBeforeRequest.removeListener(this.fix_index_html_after_proxied);
 	chrome.webNavigation.onCompleted.removeListener(this.restore_pac);
 	chrome.webNavigation.onErrorOccurred.removeListener(this.restore_pac);
 	chrome.webRequest.onErrorOccurred.removeListener(this.change_proxy_if_connection_fails);
@@ -158,8 +179,8 @@ Ahoy.prototype.update_callbacks = function() {
 
 Ahoy.prototype.proxy_turn_on_webrequest = function(details) {
 	// Turn the page option on
-	if ( -1 !== details.tabId )
-		chrome.pageAction.show( details.tabId );
+	// if ( -1 !== details.tabId )
+	//	chrome.pageAction.show( details.tabId );
 
 	// Update the proxy settings
 	this.update_proxy_settings();
@@ -202,7 +223,7 @@ Ahoy.prototype.send_hostname = function ( details ) {
 	var hostname = parser.hostname.replace("www.","");
 
 	var xhr = new XMLHttpRequest();
-	xhr.open("GET", "http://46.101.76.116/api/stats/host/" + hostname);
+	xhr.open("GET", this.api_url + "/api/stats/host/" + hostname);
 	xhr.onreadystatechange = function() {
 	  if (xhr.readyState == 4) {
 	 	console.log("Stats sent.");
@@ -227,6 +248,31 @@ Ahoy.prototype.event_proxy_updated = function( e ) {
  	this.proxy_addr = e.detail.proxy_addr;
 	chrome.storage.sync.set( { "proxy_addr": e.detail.proxy_addr } );
 
+	// Only force reload if the current site is a whitelisted site
+	chrome.tabs.query( { active: true, currentWindow: true }, function( tabs ) {
+		var currentTab = tabs[0];
+		var found_site = false;
+		if( e.detail.forceReload ) {
+			// Check if the site is in the list
+			for( var site_id in this.sites_list ) {
+				var site = this.sites_list[ site_id ];
+
+				if ( currentTab.url.indexOf( site ) !== -1 ) {
+					found_site = true;
+				} 
+			}
+
+			if( ! found_site )
+				return;
+
+			// okay, site whitelisted, let's reload 
+	 		chrome.tabs.reload( currentTab.id, { bypassCache: true }, function() {
+	 			console.log("Page reloaded.");
+	 		} );
+	  		console.log( "Reloading page..." );
+	  	}
+	}.bind(this) );
+  	
 };
 
 Ahoy.prototype.event_sites_updated = function( e ) {
@@ -234,6 +280,7 @@ Ahoy.prototype.event_sites_updated = function( e ) {
 
     // Update the local storage
     chrome.storage.sync.set( { "sites_list": e.detail.sites } );
+    
     this.sites_list = e.detail.sites;
 
     // Setup the callback filters
