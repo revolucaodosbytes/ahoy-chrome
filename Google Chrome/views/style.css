@@ -2,12 +2,13 @@ body {
 	font-family: Arial;
 	text-align: center;
 	width: 300px;
-	min-height: 300px;
+	min-height: 325px;
 	background: url("../img/cravo_curto.png") no-repeat;
 	background-position: right bottom;
 	background-size: 100px;
 	margin: 0px;
 }
+
 
 header {
     background: #219d55;
@@ -31,6 +32,20 @@ h1 {
     font-weight: bold;
     text-transform: uppercase;
     font-size: 15px;
+}
+
+.info .status {
+	font-size: 12px;
+    text-transform: lowercase;
+    margin-top: 10px;
+}
+
+.activo {
+	color: darkgreen;
+}
+
+.inactivo {
+	color: darkred;
 }
 
 .buttons button {
@@ -88,10 +103,36 @@ footer {
     color: gray;
     width: 100%;
     font-size: 10px;
+    text-align: center;
 }
 
 footer a {
 	text-decoration: none;
 	color: gray !important;
     font-weight: bold;
+}
+
+/**
+ * RELEASE NOTES
+ */
+body.release-notes {
+	width: 100%;
+	text-align: left;
+	background: url("../img/cravo.png") no-repeat;
+	background-position: right bottom;
+	background-size: 200px;
+}
+
+.release-notes header h1 {
+	font-size: 40px;
+}
+
+.release-notes h2 {
+	text-align: center;
+}
+
+article.notas {
+	max-width: 1024px;
+	margin: 0 auto;
+	line-height: 1.7em;
 }

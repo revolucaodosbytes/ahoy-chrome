@@ -6,6 +6,28 @@ $(document).ready( function() {
         $("#proxyaddr").text( result.proxy_addr );    
     } )
 
+    chrome.tabs.query( { active:true, currentWindow: true }, function(tabs) {
+        var currentTab = tabs[0];
+        var sites_list = chrome.extension.getBackgroundPage().ahoy.sites_list;
+        var activo = false;
+
+        for( var site_id in sites_list ) {
+            var site = sites_list[ site_id ];
+
+            if ( currentTab.url.indexOf( site ) !== -1 ) {
+                activo = true;
+            } 
+        }
+
+        if( activo ) {
+            $(".status.activo").show();
+            $(".status.inactivo").hide();
+        } else {
+            $(".status.activo").hide();
+            $(".status.inactivo").show();
+        }
+    })
+
 
     $("#forcarProxy").click( function() {
         if($(this).attr('disabled')) { // HERE
