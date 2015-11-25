@@ -3,8 +3,8 @@ var Ahoy = function() {
 	/**
 	 * CONFIGS
 	 */
-	//this.api_url = "http://46.101.64.62";
-	this.api_url = "http://ahoy.app:8000";
+	this.api_url = "http://46.101.64.62";
+	//this.api_url = "http://ahoy.app:8000";
 
 	/**
 	 * DEFAULTS
@@ -210,6 +210,11 @@ Ahoy.prototype.after_update = function( details ) {
 	// Make sure the plugins fetch for new information when it's installed/updated
 	this.update_site_list();
 	this.update_proxy();
+	console.log(details);
+	if( (details.reason === "update" && details.previousVersion !== chrome.app.getDetails().version) || details.reason === "install" ) {
+		chrome.tabs.create({'url': chrome.extension.getURL('views/release_notes.html'), 'selected': true});
+	}
+
 };
 
 
@@ -280,7 +285,7 @@ Ahoy.prototype.event_sites_updated = function( e ) {
 
     // Update the local storage
     chrome.storage.sync.set( { "sites_list": e.detail.sites } );
-    
+
     this.sites_list = e.detail.sites;
 
     // Setup the callback filters

@@ -6,15 +6,24 @@
 
 	<body>
 		<script src="jquery-1.11.3.min.js"></script>
-		<script src="ahoy.js"></script>
 		<script src="popup.js"></script>
+		<script>
+		</script>
 
-		<h1>Ahoy!</h1>
-		<div class="info">A utilizar o proxy <span id="proxyaddr">xxx.xxx.xxx.xxx</span></div>
+		<header>
+			<h1>Ahoy!</h1>
+		</header>
+		<div class="info">Ligado a <span id="proxyaddr">xxx.xxx.xxx.xxx</span></div>
 		<div class="waiting" ><img src="wait.gif"></img></div>
-		<div class="links">
-			<a href="#" id="forcarProxy">Forçar Novo Proxy</a>
-			<a href="#" id="listaSites">Actualizar Lista de Sites</a>
+		<div class="buttons">
+			<button id="forcarProxy">Forçar Novo Proxy</button>
+			<button id="listaSites">Actualizar Lista de Sites</button>
+			          <input type="hidden" autofocus />
 		</div>
+
+		<footer>
+			<div>Feito com ♥ em Portugal <span id="ahoy-version">v1.0</span></div>
+			<div><a href="">#RevoluçãoDosBytes</a></div>
+		</footer>
 	</body>
 </html>
