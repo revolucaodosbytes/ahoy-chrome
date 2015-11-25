@@ -13,7 +13,7 @@ Chega de bloqueios! Queremos uma internet aberta.
 ![alt text](http://rafaelalmeida.pt/wp-content/uploads/2015/11/rdblogo.png "Ahoy!")
 
 ### Version
-2.1
+3.0
 
 
 ### Installation
