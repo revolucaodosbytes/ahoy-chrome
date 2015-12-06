@@ -10,7 +10,7 @@ Chega de bloqueios! Queremos uma internet aberta.
 
 /#RevoluçãodosBytes
 
-![alt text](http://rafaelalmeida.pt/wp-content/uploads/2015/11/rdblogo.png "Ahoy!")
+![alt text](http://rafaelalmeida.pt/wp-content/uploads/2015/12/rdb.png "Ahoy!")
 
 ### Version
 3.0
