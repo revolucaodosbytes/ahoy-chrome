@@ -23,7 +23,7 @@ var Ahoy = function() {
 			this.proxy_addr = result.proxy_addr;
 
 		// Init callbacks
-		this.init_callbacks();
+		this.update_callbacks();
 		this.init_events();
 
 	}.bind(this));
@@ -134,27 +134,40 @@ Ahoy.prototype.update_proxy = function ( forceReload ) {
 Ahoy.prototype.init_callbacks = function( ) {
 
 	console.log("Initializing callbacks");
+	
+	// Setup the handler variables
+	this.proxy_turn_on_webrequest_handler = this.proxy_turn_on_webrequest.bind(this);
+	this.fix_index_html_after_proxied_handler = this.fix_index_html_after_proxied.bind(this);
+	this.restore_pac_handler = this.restore_pac.bind(this);
+	this.change_proxy_if_connection_fails_handler = this.change_proxy_if_connection_fails.bind(this);
+	this.send_hostname_handler = this.send_hostname.bind(this);
+	this.check_for_blocked_site_handler = this.check_for_blocked_site.bind(this);
+
+
 	// Check if the callbacks filters have been generated
 	if( this.webreq_filter_list.length === 0 || this.webnav_filter_list.length === 0) {
 		this.setup_callback_filters();
 	}
 
 	chrome.webRequest.onBeforeRequest.addListener(
-		this.proxy_turn_on_webrequest.bind(this),
+		this.proxy_turn_on_webrequest_handler,
         {urls: this.webreq_filter_list},
         ["blocking"]
 	);
-	chrome.webRequest.onBeforeRequest.addListener( this.fix_index_html_after_proxied.bind(this), 
+	chrome.webRequest.onBeforeRequest.addListener( this.fix_index_html_after_proxied_handler, 
 		{urls: this.webreq_filter_list},
         ["blocking"]
     );
 
-	chrome.webNavigation.onCompleted.addListener( this.restore_pac.bind(this), {url: this.webnav_filter_list} );
-	chrome.webNavigation.onErrorOccurred.addListener( this.restore_pac.bind(this), {url: this.webnav_filter_list} );
-	chrome.webRequest.onErrorOccurred.addListener( this.change_proxy_if_connection_fails.bind(this), {urls: this.webreq_filter_list } );
+	chrome.webNavigation.onCompleted.addListener( this.restore_pac_handler, {url: this.webnav_filter_list} );
+	chrome.webNavigation.onErrorOccurred.addListener( this.restore_pac_handler, {url: this.webnav_filter_list} );
+
+	chrome.webRequest.onErrorOccurred.addListener( this.change_proxy_if_connection_fails_handler, {urls: this.webreq_filter_list } );
+
+	chrome.webRequest.onResponseStarted.addListener( this.check_for_blocked_site_handler , {urls: ["<all_urls>"]} );
 
 	// Stats
-	chrome.webNavigation.onBeforeNavigate.addListener( this.send_hostname.bind(this), {url: this.webnav_filter_list } );
+	chrome.webNavigation.onBeforeNavigate.addListener( this.send_hostname_handler, {url: this.webnav_filter_list } );
 
 };
 
@@ -163,14 +176,17 @@ Ahoy.prototype.update_callbacks = function() {
 	// Remove all the callbacks
 	console.log("Updating old callbacks...");
 
-	chrome.webRequest.onBeforeRequest.removeListener(this.proxy_turn_on_webrequest);
-	chrome.webRequest.onBeforeRequest.removeListener(this.fix_index_html_after_proxied);
-	chrome.webNavigation.onCompleted.removeListener(this.restore_pac);
-	chrome.webNavigation.onErrorOccurred.removeListener(this.restore_pac);
-	chrome.webRequest.onErrorOccurred.removeListener(this.change_proxy_if_connection_fails);
+	chrome.webRequest.onBeforeRequest.removeListener(this.proxy_turn_on_webrequest_handler);
+	chrome.webRequest.onBeforeRequest.removeListener(this.fix_index_html_after_proxied_handler);
+
+	chrome.webNavigation.onCompleted.removeListener(this.restore_pac_handler);
+	chrome.webNavigation.onErrorOccurred.removeListener(this.restore_pac_handler);
+
+	chrome.webRequest.onErrorOccurred.removeListener(this.change_proxy_if_connection_fails_handler);
+	chrome.webRequest.onResponseStarted.removeListener(this.check_for_blocked_site_handler);
 
 	// Stats
-	chrome.webNavigation.onBeforeNavigate.removeListener(this.send_hostname);
+	chrome.webNavigation.onBeforeNavigate.removeListener(this.send_hostname_handler);
 
 	// Recreate new callbacks
 	this.init_callbacks();
@@ -295,6 +311,39 @@ Ahoy.prototype.event_sites_updated = function( e ) {
   	this.update_callbacks();
 
 };
+
+Ahoy.prototype.check_for_blocked_site = function( details ) {
+
+	// Array with the IP's that the Blocked Page warning usually have.
+	var warning_ips = [
+		"195.23.113.202", 	// NOS
+		"213.13.145.120", 	// MEO
+		"212.18.182.164",	// Vodafone
+		"212.18.182.197"	// Vodafone
+	];
+
+	// Ignore all the requests that aren't main
+	if( details.type !== 'main_frame' )
+		return;
+
+	// Ignore if the IP of the site is not the one from above.
+	if( warning_ips.indexOf( details.ip) === -1 )
+		return;
+
+	// Send the async request
+	var xhr = new XMLHttpRequest();
+	var params = "site=" + details.url;
+	xhr.open("POST", this.api_url + "/api/report/blocked", true);
+	xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+	xhr.onreadystatechange = function() {
+	  if (xhr.readyState == 4 && xhr.status == 200) {
+	 	console.log("Blocked site reported! " + details.url);
+	  } else if ( xhr.status != 200 ) {
+	  	console.log("There was an error reporting this Blocked site");
+	  }
+	}
+	xhr.send(params);
+}
 
 Ahoy.prototype.setup_callback_filters = function() {
 	console.log("Setting up callback filters...");

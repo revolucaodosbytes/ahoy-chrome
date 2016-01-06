@@ -2,7 +2,7 @@
     "manifest_version": 2, 
     "name": "Ahoy!",
     "description": "Acede a todos os sites bloqueados em Portugal. Uma experiencia de internet livre e sem qualquer tipo de bloqueios.", 
-    "version": "3.0.0",
+    "version": "3.0.1",
     "icons": { 
     	"16": "icons/16x16.png", 
     	"48": "icons/48x48.png",
