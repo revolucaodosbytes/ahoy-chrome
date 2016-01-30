@@ -2,6 +2,11 @@ $(document).ready( function() {
 
     $('#ahoy-version').text("v" + chrome.app.getDetails().version);
 
+    $('#verSites').click( function() {
+        var newURL = "https://sitesbloqueados.pt/?utm_source=ahoy&utm_medium=chrome&utm_campaign=Ahoy%20Chrome";
+        chrome.tabs.create({ url: newURL });
+    }); 
+
     chrome.storage.sync.get( [ "proxy_addr" ], function( result) { 
         $("#proxyaddr").text( result.proxy_addr );    
     } )
