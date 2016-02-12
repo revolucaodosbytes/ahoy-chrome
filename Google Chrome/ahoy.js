@@ -51,7 +51,7 @@ Ahoy.prototype.update_proxy_settings = function () {
 
 	// Setup new settings for the appropriate window.
 	console.log("Applying proxy settings");
-	chrome.proxy.settings.set(proxySettings, function() { } );
+	chrome.proxy.settings.set(proxySettings);
 
 };
 
@@ -141,15 +141,12 @@ Ahoy.prototype.init_callbacks = function( ) {
 	this.check_for_blocked_site_handler = this.check_for_blocked_site.bind(this);
 	this.update_browse_action_icon_handler = this.update_browse_action_icon.bind(this);
 
-	// Check if the callbacks filters have been generated
-	if( this.webreq_filter_list.length === 0 || this.webnav_filter_list.length === 0) {
-		this.setup_callback_filters();
-	}
-
+	// Setup the callback filters
+	this.setup_callback_filters();
 
 	chrome.webNavigation.onBeforeNavigate.addListener(
 		this.proxy_turn_on_webrequest_handler,
-		{ urls: this.webreq_filter_list} );
+		{ url: this.webnav_filter_list } );
 
 	chrome.webRequest.onBeforeRequest.addListener( this.fix_index_html_after_proxied_handler, 
 		{urls: this.webreq_filter_list},
@@ -321,9 +318,6 @@ Ahoy.prototype.event_sites_updated = function( e ) {
     chrome.storage.sync.set( { "sites_list": e.detail.sites } );
 
     this.sites_list = e.detail.sites;
-
-    // Setup the callback filters
-    this.setup_callback_filters();
 
   	// Update the old callbacks
   	this.update_callbacks();
