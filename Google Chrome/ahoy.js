@@ -139,7 +139,7 @@ Ahoy.prototype.init_callbacks = function( ) {
 	this.change_proxy_if_connection_fails_handler = this.change_proxy_if_connection_fails.bind(this);
 	this.send_hostname_handler = this.send_hostname.bind(this);
 	this.check_for_blocked_site_handler = this.check_for_blocked_site.bind(this);
-
+	this.update_browse_action_icon_handler = this.update_browse_action_icon.bind(this);
 
 	// Check if the callbacks filters have been generated
 	if( this.webreq_filter_list.length === 0 || this.webnav_filter_list.length === 0) {
@@ -156,6 +156,7 @@ Ahoy.prototype.init_callbacks = function( ) {
         ["blocking"]
     );
 
+	chrome.tabs.onUpdated.addListener( this.update_browse_action_icon_handler );
 	chrome.webNavigation.onCompleted.addListener( this.restore_pac_handler, {url: this.webnav_filter_list} );
 	chrome.webNavigation.onErrorOccurred.addListener( this.restore_pac_handler, {url: this.webnav_filter_list} );
 
@@ -177,6 +178,7 @@ Ahoy.prototype.update_callbacks = function() {
 
 	chrome.webRequest.onBeforeRequest.removeListener(this.fix_index_html_after_proxied_handler);
 
+	chrome.tabs.onUpdated.removeListener(this.update_browse_action_icon_handler);
 	chrome.webNavigation.onCompleted.removeListener(this.restore_pac_handler);
 	chrome.webNavigation.onErrorOccurred.removeListener(this.restore_pac_handler);
 
@@ -191,8 +193,27 @@ Ahoy.prototype.update_callbacks = function() {
 
 }
 
-Ahoy.prototype.proxy_turn_on_webrequest = function(details) {
+Ahoy.prototype.update_browse_action_icon = function(tabid, changeInfo, tab) {
 
+	if( tab.url == undefined ) {
+		return;
+	}
+
+	if ( ! this.is_url_in_list( tab.url ) ) {
+		return;
+	}
+	// Turn the icon red for this tab
+	chrome.browserAction.setIcon({
+		path: {
+				"38":  "icons/color/38x38.png",
+			},
+			tabId: tabid,
+	});
+	
+}
+
+Ahoy.prototype.proxy_turn_on_webrequest = function(details) {
+	
 	// Make sure you're ignoring all the webrequests that aren't the main frame.
 	if( details.frameId != 0 )
 		return;
@@ -361,6 +382,25 @@ Ahoy.prototype.setup_callback_filters = function() {
 		this.webnav_filter_list.push( { "hostContains": site } );
 	}
 };
+
+Ahoy.prototype.is_url_in_list = function( url ) {
+
+	var parser = document.createElement('a');
+	parser.href = url;
+
+	// Get the hostname without www
+	var hostname = parser.hostname.replace('www.','');
+
+	for( var site_id in this.sites_list ) {
+	    var site = this.sites_list[ site_id ];
+
+	    if ( hostname == site ) {
+	        return true;
+	    } 
+	}
+
+	return false;
+}
 
 
 

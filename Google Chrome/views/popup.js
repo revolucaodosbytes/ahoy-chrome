@@ -3,7 +3,7 @@ $(document).ready( function() {
     $('#ahoy-version').text("v" + chrome.app.getDetails().version);
 
     $('#verSites').click( function() {
-        var newURL = "https://sitesbloqueados.pt/?utm_source=ahoy&utm_medium=chrome&utm_campaign=Ahoy%20Chrome";
+        var newURL = "https://sitesbloqueados.pt/?utm_source=ahoy&utm_medium=chrome-popup&utm_campaign=Ahoy%20Chrome";
         chrome.tabs.create({ url: newURL });
     }); 
 
@@ -13,16 +13,8 @@ $(document).ready( function() {
 
     chrome.tabs.query( { active:true, currentWindow: true }, function(tabs) {
         var currentTab = tabs[0];
-        var sites_list = chrome.extension.getBackgroundPage().ahoy.sites_list;
-        var activo = false;
-
-        for( var site_id in sites_list ) {
-            var site = sites_list[ site_id ];
-
-            if ( currentTab.url.indexOf( site ) !== -1 ) {
-                activo = true;
-            } 
-        }
+        
+        var activo = chrome.extension.getBackgroundPage().ahoy.is_url_in_list(currentTab.url);
 
         if( activo ) {
             $(".status.activo").show();
