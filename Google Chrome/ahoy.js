@@ -50,11 +50,8 @@ Ahoy.prototype.update_proxy_settings = function () {
 	};
 
 	// Setup new settings for the appropriate window.
-
-	// Make sure that the PAC settings are applied with a small delay
-	sleep(100);
 	console.log("Applying proxy settings");
-	chrome.proxy.settings.set(proxySettings, function() {} );
+	chrome.proxy.settings.set(proxySettings, function() { } );
 
 };
 
@@ -149,11 +146,11 @@ Ahoy.prototype.init_callbacks = function( ) {
 		this.setup_callback_filters();
 	}
 
-	chrome.webRequest.onBeforeRequest.addListener(
+
+	chrome.webNavigation.onBeforeNavigate.addListener(
 		this.proxy_turn_on_webrequest_handler,
-        {urls: this.webreq_filter_list},
-        ["blocking"]
-	);
+		{ urls: this.webreq_filter_list} );
+
 	chrome.webRequest.onBeforeRequest.addListener( this.fix_index_html_after_proxied_handler, 
 		{urls: this.webreq_filter_list},
         ["blocking"]
@@ -167,7 +164,7 @@ Ahoy.prototype.init_callbacks = function( ) {
 	chrome.webRequest.onResponseStarted.addListener( this.check_for_blocked_site_handler , {urls: ["<all_urls>"]} );
 
 	// Stats
-	chrome.webNavigation.onBeforeNavigate.addListener( this.send_hostname_handler, {url: this.webnav_filter_list } );
+	chrome.webNavigation.onCompleted.addListener( this.send_hostname_handler, {url: this.webnav_filter_list } );
 
 };
 
@@ -176,7 +173,8 @@ Ahoy.prototype.update_callbacks = function() {
 	// Remove all the callbacks
 	console.log("Updating old callbacks...");
 
-	chrome.webRequest.onBeforeRequest.removeListener(this.proxy_turn_on_webrequest_handler);
+	chrome.webNavigation.onBeforeNavigate.removeListener(this.proxy_turn_on_webrequest_handler)
+
 	chrome.webRequest.onBeforeRequest.removeListener(this.fix_index_html_after_proxied_handler);
 
 	chrome.webNavigation.onCompleted.removeListener(this.restore_pac_handler);
@@ -186,7 +184,7 @@ Ahoy.prototype.update_callbacks = function() {
 	chrome.webRequest.onResponseStarted.removeListener(this.check_for_blocked_site_handler);
 
 	// Stats
-	chrome.webNavigation.onBeforeNavigate.removeListener(this.send_hostname_handler);
+	chrome.webNavigation.onCompleted.removeListener(this.send_hostname_handler);
 
 	// Recreate new callbacks
 	this.init_callbacks();
@@ -194,9 +192,10 @@ Ahoy.prototype.update_callbacks = function() {
 }
 
 Ahoy.prototype.proxy_turn_on_webrequest = function(details) {
-	// Turn the page option on
-	// if ( -1 !== details.tabId )
-	//	chrome.pageAction.show( details.tabId );
+
+	// Make sure you're ignoring all the webrequests that aren't the main frame.
+	if( details.frameId != 0 )
+		return;
 
 	// Update the proxy settings
 	this.update_proxy_settings();
@@ -207,10 +206,8 @@ Ahoy.prototype.proxy_turn_on_webrequest = function(details) {
  */
 Ahoy.prototype.restore_pac = function( details ) {
 	// Make sure that the PAC settings are applied with a small delay
-	setTimeout( function() {
-		console.log( "Reverting proxy settings");
-		chrome.proxy.settings.clear( { scope: 'regular' } );
-	}, 2000 );
+	console.log( "Reverting proxy settings");
+	chrome.proxy.settings.clear( { scope: 'regular' } );
 };
 
 /**
