@@ -53,6 +53,8 @@ Ahoy.prototype.update_proxy_settings = function () {
 	console.log("Applying proxy settings");
 	chrome.proxy.settings.set(proxySettings);
 
+	sleep(150);
+
 };
 
 Ahoy.prototype.fix_index_html_after_proxied = function(sender) {
