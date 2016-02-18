@@ -10,6 +10,20 @@ function sleep(milliseconds) {
   }
 }
 
+function parseVersionString (str) {
+    if (typeof(str) != 'string') { return false; }
+    var x = str.split('.');
+    // parse from string or default to 0 if can't parse
+    var maj = parseInt(x[0]) || 0;
+    var min = parseInt(x[1]) || 0;
+    var pat = parseInt(x[2]) || 0;
+    return {
+        major: maj,
+        minor: min,
+        patch: pat
+    }
+}
+
 // Initialize the ahoy
 var ahoy = new Ahoy();
 

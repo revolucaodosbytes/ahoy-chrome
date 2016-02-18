@@ -249,7 +249,14 @@ Ahoy.prototype.after_update = function( details ) {
 	this.update_site_list();
 	this.update_proxy();
 	console.log(details);
-	if( (details.reason === "update" && details.previousVersion !== chrome.app.getDetails().version) || details.reason === "install" ) {
+
+	var last_version = parseVersionString(details.previousVersion);
+	var current_version = parseVersionString(chrome.app.getDetails().version);
+
+
+	if( last_version.major != current_version.major 
+		|| last_version.minor != current_version.minor 
+		|| details.reason === "install" ) {
 		chrome.tabs.create({'url': chrome.extension.getURL('views/release_notes.html'), 'selected': true});
 	}
 
