@@ -62,7 +62,7 @@ Ahoy.prototype.fix_index_html_after_proxied = function(sender) {
 	if ( sender.url.indexOf("index.html") === -1 )
 		return;
 
-	console.log("Detecting a index.html page, redirecting to the non index.html");
+	console.log("Detecting a index.html page - " + sender.url +  " -, redirecting to the non index.html");
 	return {redirectUrl: sender.url.replace("index.html", "") };
 };
 
@@ -225,6 +225,11 @@ Ahoy.prototype.proxy_turn_on_webrequest = function(details) {
  * Retore PAC callback
  */
 Ahoy.prototype.restore_pac = function( details ) {
+
+	// Ignore anything that isn't the main frame.
+	if( details.frameId != 0 )
+		return;
+
 	// Make sure that the PAC settings are applied with a small delay
 	console.log( "Reverting proxy settings");
 	chrome.proxy.settings.clear( { scope: 'regular' } );
