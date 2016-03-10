@@ -15,7 +15,7 @@ var Ahoy = function() {
 	this.webnav_filter_list = [];
 
 	// Update the info with the latest content from the Local Storage
-	chrome.storage.sync.get( [ "sites_list", "proxy_addr" ],function( result) {
+	chrome.storage.local.get( [ "sites_list", "proxy_addr" ],function( result) {
 		if (result.sites_list !== undefined)
 			this.sites_list = result.sites_list;
 
@@ -296,7 +296,7 @@ Ahoy.prototype.event_proxy_updated = function( e ) {
 
 	// Update the fields
  	this.proxy_addr = e.detail.proxy_addr;
-	chrome.storage.sync.set( { "proxy_addr": e.detail.proxy_addr } );
+	chrome.storage.local.set( { "proxy_addr": e.detail.proxy_addr } );
 
 	// Only force reload if the current site is a whitelisted site
 	chrome.tabs.query( { active: true, currentWindow: true }, function( tabs ) {
@@ -329,7 +329,7 @@ Ahoy.prototype.event_sites_updated = function( e ) {
 	console.log("[EVENT] Sites list updated. Total size: " + e.detail.sites.length);
 
     // Update the local storage
-    chrome.storage.sync.set( { "sites_list": e.detail.sites } );
+    chrome.storage.local.set( { "sites_list": e.detail.sites } );
 
     this.sites_list = e.detail.sites;
 
