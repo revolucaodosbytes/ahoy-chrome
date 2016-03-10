@@ -344,7 +344,6 @@ Ahoy.prototype.check_for_blocked_site = function( details ) {
 	var warning_ips = [
 		"195.23.113.202", 	// NOS
 		"213.13.145.120", 	// MEO
-		"109.202.109.18",	// MEO (2nd IP)
 		"212.18.182.164",	// Vodafone
 		"212.18.182.197"	// Vodafone
 	];
