@@ -4,7 +4,7 @@ Acede a todos os sites bloqueados em Portugal. Uma experiencia de internet livre
 
 Basta de limites e bloqueios! A internet é de todos e para todos, basta de termos alguém a dizer o que podemos ou não visitar!
 
-Basta instalar e consegues visitar todos os sites bloqueados novamente! É escolhido um proxy automaticamente com o melhor tempo de resposta possível para uma utilização fluida dos sites bloqueados.
+Basta instalar e consegues visitar todos os sites bloqueados novamente!
 
 Chega de bloqueios! Queremos uma internet aberta.
 
