@@ -1,4 +1,4 @@
-# Ahoy
+# Ahoy!
 
 Acede a todos os sites bloqueados em Portugal. Uma experiencia de internet livre e sem qualquer tipo de bloqueios.
 
@@ -13,12 +13,12 @@ Chega de bloqueios! Queremos uma internet aberta.
 ![alt text](http://rafaelalmeida.pt/wp-content/uploads/2015/12/rdb.png "Ahoy!")
 
 ### Version
-3.0
-
+3.1.2
 
 ### Installation
 
 - Google Chrome - https://chrome.google.com/webstore/detail/ahoy/ljighgeflmhnpljodhpcifcojkpancpm
+- Firefox - https://addons.mozilla.org/en-US/firefox/addon/ahoy/
 
 ### Desenvolvimento
 
