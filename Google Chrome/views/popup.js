@@ -11,6 +11,10 @@ $(document).ready( function() {
         $("#proxyaddr").text( result.proxy_addr );    
     } )
 
+    $(".inquerito").click( function() {
+        chrome.tabs.create({ url: "https://goo.gl/aIG4Re" });
+    })
+
     chrome.tabs.query( { active:true, currentWindow: true }, function(tabs) {
         var currentTab = tabs[0];
         
