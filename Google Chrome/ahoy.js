@@ -14,6 +14,8 @@ var Ahoy = function() {
 	this.webreq_filter_list = [];
 	this.webnav_filter_list = [];
 
+	this.last_request_redirected = false;
+
 	// Update the info with the latest content from the Local Storage
 	chrome.storage.local.get( [ "sites_list", "proxy_addr" ],function( result) {
 		if (result.sites_list !== undefined)
@@ -142,6 +144,7 @@ Ahoy.prototype.init_callbacks = function( ) {
 	this.send_hostname_handler = this.send_hostname.bind(this);
 	this.check_for_blocked_site_handler = this.check_for_blocked_site.bind(this);
 	this.update_browse_action_icon_handler = this.update_browse_action_icon.bind(this);
+	this.check_for_blocked_redirected_site_handler = this.check_for_blocked_redirected_site.bind(this);
 
 	// Setup the callback filters
 	this.setup_callback_filters();
@@ -162,6 +165,7 @@ Ahoy.prototype.init_callbacks = function( ) {
 	chrome.webRequest.onErrorOccurred.addListener( this.change_proxy_if_connection_fails_handler, {urls: this.webreq_filter_list } );
 
 	chrome.webRequest.onResponseStarted.addListener( this.check_for_blocked_site_handler , {urls: ["<all_urls>"]} );
+	chrome.webRequest.onBeforeRedirect.addListener( this.check_for_blocked_redirected_site_handler , {urls: ["<all_urls>"]} );
 
 	// Stats
 	chrome.webNavigation.onCompleted.addListener( this.send_hostname_handler, {url: this.webnav_filter_list } );
@@ -183,6 +187,7 @@ Ahoy.prototype.update_callbacks = function() {
 
 	chrome.webRequest.onErrorOccurred.removeListener(this.change_proxy_if_connection_fails_handler);
 	chrome.webRequest.onResponseStarted.removeListener(this.check_for_blocked_site_handler);
+	chrome.webRequest.onBeforeRedirect.removeListener(this.check_for_blocked_redirected_site_handler);
 
 	// Stats
 	chrome.webNavigation.onCompleted.removeListener(this.send_hostname_handler);
@@ -338,6 +343,10 @@ Ahoy.prototype.event_sites_updated = function( e ) {
 
 };
 
+Ahoy.prototype.check_for_blocked_redirected_site = function( details ) {
+	this.check_for_blocked_site(details);
+}
+
 Ahoy.prototype.check_for_blocked_site = function( details ) {
 
 	// Array with the IP's that the Blocked Page warning usually have.
@@ -350,6 +359,12 @@ Ahoy.prototype.check_for_blocked_site = function( details ) {
 		"213.228.128.215"	// Cabovisao SRIJ
 	];
 
+	// Just bail if this request comes from a redirection.
+	if( this.last_request_redirected === true ) {
+		this.last_request_redirected = false;
+		return;
+	}
+
 	// Ignore all the requests that aren't main
 	if( details.type !== 'main_frame' )
 		return;
@@ -357,6 +372,10 @@ Ahoy.prototype.check_for_blocked_site = function( details ) {
 	// Ignore if the IP of the site is not the one from above.
 	if( warning_ips.indexOf( details.ip) === -1 )
 		return;
+
+	// Make sure we flag this as a redirect, if it's the case
+	if( details.redirectUrl !== undefined )
+		this.last_request_redirected = true;
 
 	// Send the async request
 	var xhr = new XMLHttpRequest();
