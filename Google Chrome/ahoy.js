@@ -345,7 +345,9 @@ Ahoy.prototype.check_for_blocked_site = function( details ) {
 		"195.23.113.202", 	// NOS
 		"213.13.145.120", 	// MEO
 		"212.18.182.164",	// Vodafone
-		"212.18.182.197"	// Vodafone
+		"212.18.182.197",	// Vodafone
+		"213.228.128.216",  // Cabovisao IGAC
+		"213.228.128.215"	// Cabovisao SRIJ
 	];
 
 	// Ignore all the requests that aren't main
