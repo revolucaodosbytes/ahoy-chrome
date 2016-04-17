@@ -338,6 +338,9 @@ Ahoy.prototype.check_for_blocked_site = function( details ) {
 	if( this.disabled )
 		return;
 
+	// HOTFIX: Fix potential problem with turned off proxy
+	this.enable_proxy();
+
 	// Array with the IP's that the Blocked Page warning usually have.
 	var warning_ips = [
 		"195.23.113.202", 	// NOS
