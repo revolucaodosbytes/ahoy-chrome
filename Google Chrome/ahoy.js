@@ -3,29 +3,40 @@ var Ahoy = function() {
 	/**
 	 * CONFIGS
 	 */
-	this.api_url = "http://46.101.64.62";
+	this.api_url = "https://ahoy-api.revolucaodosbytes.pt";
 	//this.api_url = "http://ahoy.app:8000";
 
 	/**
 	 * DEFAULTS
 	 */
 	this.sites_list = ['thepiratebay.org'];
-	this.proxy_addr = "162.208.49.45:3127"; //default proxy
+	this.proxy_addr = "proxy1.ahoy.pro:3127"; //default proxy
 	this.webreq_filter_list = [];
 	this.webnav_filter_list = [];
+	this.disabled = false;
 
 	this.last_request_redirected = false;
 
 	// Update the info with the latest content from the Local Storage
-	chrome.storage.local.get( [ "sites_list", "proxy_addr" ],function( result) {
+	chrome.storage.local.get( [ "sites_list", "proxy_addr", "disabled" ],function( result) {
 		if (result.sites_list !== undefined)
 			this.sites_list = result.sites_list;
 
 		if (result.proxy_addr !== undefined)
 			this.proxy_addr = result.proxy_addr;
 
-		// Init callbacks
-		this.update_callbacks();
+		if (result.disabled !== undefined )
+			this.disabled = result.disabled;
+
+		this.enable_proxy();
+
+		if( this.disabled ) {
+			this.disable();
+		} else {
+			this.enable();
+		}
+
+		// Init
 		this.init_events();
 
 	}.bind(this));
@@ -34,14 +45,42 @@ var Ahoy = function() {
 	chrome.runtime.onInstalled.addListener( this.after_update.bind(this) );
 };
 
+Ahoy.prototype.disable = function() {
+	this.disabled = true;
+	chrome.storage.local.set( { "disabled": true } );
 
-Ahoy.prototype.update_proxy_settings = function () {
+	// Set disabled popup
+	chrome.browserAction.setPopup({popup: "views/disabled.html"});
+	if( getPopup() != undefined )
+		getPopup().location.href = "disabled.html";
+
+	this.disable_proxy() // Disable the pac file
+
+};
+
+Ahoy.prototype.enable = function() {
+	this.disabled = false;
+	chrome.storage.local.set( { "disabled": false } );
+	
+	// Set enabled popup
+	chrome.browserAction.setPopup({popup: "views/popup.html"});
+	if( getPopup() != undefined )
+		getPopup().location.href = "popup.html";
+
+	this.update_callbacks();
+
+	this.enable_proxy();
+};
+
+
+Ahoy.prototype.enable_proxy = function () {
 
 	// Mudar o proxy
 	var config = {
 	    mode: 'pac_script',
 	    pacScript: {
-	      data: this.generate_pac()
+	      url: this.api_url + "/api/pac?proxy_addr="+this.proxy_addr,
+	      mandatory: true
 	    }
 	  };
 	  
@@ -52,33 +91,32 @@ Ahoy.prototype.update_proxy_settings = function () {
 	};
 
 	// Setup new settings for the appropriate window.
-	console.log("Applying proxy settings");
+	console.log("Applying proxy settings for " + this.proxy_addr);
 	chrome.proxy.settings.set(proxySettings);
-
-	sleep(150);
 
 };
 
+/**
+ * Retore PAC callback
+ */
+Ahoy.prototype.disable_proxy = function( ) {
+
+	console.log( "Reverting proxy settings");
+	chrome.proxy.settings.clear( { scope: 'regular' } );
+
+};
+
+//TODO: Remove?
 Ahoy.prototype.fix_index_html_after_proxied = function(sender) {
+
+	if( this.disabled )
+		return;
 
 	if ( sender.url.indexOf("index.html") === -1 )
 		return;
 
 	console.log("Detecting a index.html page - " + sender.url +  " -, redirecting to the non index.html");
 	return {redirectUrl: sender.url.replace("index.html", "") };
-};
-
-Ahoy.prototype.generate_pac = function () {
-	var pac = 	"function FindProxyForURL(url, host) {\n";
-	for( var siteid in this.sites_list ) {
-		var site = this.sites_list[siteid];
-		 pac += "  if (host == '" + site + "' || host == 'www." + site + "')\n" +
-         		"    return 'PROXY " + this.proxy_addr + "';\n";
-		//console.log(site);
-	}
-    pac += 	"  return 'DIRECT';\n" +
-   			"}";
-   	return pac;
 };
 
 Ahoy.prototype.update_site_list = function () { 
@@ -137,9 +175,7 @@ Ahoy.prototype.init_callbacks = function( ) {
 	console.log("Initializing callbacks");
 	
 	// Setup the handler variables
-	this.proxy_turn_on_webrequest_handler = this.proxy_turn_on_webrequest.bind(this);
-	this.fix_index_html_after_proxied_handler = this.fix_index_html_after_proxied.bind(this);
-	this.restore_pac_handler = this.restore_pac.bind(this);
+	this.fix_index_html_after_proxied_handler = this.fix_index_html_after_proxied.bind(this); 
 	this.change_proxy_if_connection_fails_handler = this.change_proxy_if_connection_fails.bind(this);
 	this.send_hostname_handler = this.send_hostname.bind(this);
 	this.check_for_blocked_site_handler = this.check_for_blocked_site.bind(this);
@@ -149,18 +185,12 @@ Ahoy.prototype.init_callbacks = function( ) {
 	// Setup the callback filters
 	this.setup_callback_filters();
 
-	chrome.webNavigation.onBeforeNavigate.addListener(
-		this.proxy_turn_on_webrequest_handler,
-		{ url: this.webnav_filter_list } );
-
 	chrome.webRequest.onBeforeRequest.addListener( this.fix_index_html_after_proxied_handler, 
 		{urls: this.webreq_filter_list},
         ["blocking"]
     );
 
 	chrome.tabs.onUpdated.addListener( this.update_browse_action_icon_handler );
-	chrome.webNavigation.onCompleted.addListener( this.restore_pac_handler, {url: this.webnav_filter_list} );
-	chrome.webNavigation.onErrorOccurred.addListener( this.restore_pac_handler, {url: this.webnav_filter_list} );
 
 	chrome.webRequest.onErrorOccurred.addListener( this.change_proxy_if_connection_fails_handler, {urls: this.webreq_filter_list } );
 
@@ -177,13 +207,9 @@ Ahoy.prototype.update_callbacks = function() {
 	// Remove all the callbacks
 	console.log("Updating old callbacks...");
 
-	chrome.webNavigation.onBeforeNavigate.removeListener(this.proxy_turn_on_webrequest_handler)
-
 	chrome.webRequest.onBeforeRequest.removeListener(this.fix_index_html_after_proxied_handler);
 
 	chrome.tabs.onUpdated.removeListener(this.update_browse_action_icon_handler);
-	chrome.webNavigation.onCompleted.removeListener(this.restore_pac_handler);
-	chrome.webNavigation.onErrorOccurred.removeListener(this.restore_pac_handler);
 
 	chrome.webRequest.onErrorOccurred.removeListener(this.change_proxy_if_connection_fails_handler);
 	chrome.webRequest.onResponseStarted.removeListener(this.check_for_blocked_site_handler);
@@ -216,29 +242,6 @@ Ahoy.prototype.update_browse_action_icon = function(tabid, changeInfo, tab) {
 	
 }
 
-Ahoy.prototype.proxy_turn_on_webrequest = function(details) {
-	
-	// Make sure you're ignoring all the webrequests that aren't the main frame.
-	if( details.frameId != 0 )
-		return;
-
-	// Update the proxy settings
-	this.update_proxy_settings();
-};
-
-/**
- * Retore PAC callback
- */
-Ahoy.prototype.restore_pac = function( details ) {
-
-	// Ignore anything that isn't the main frame.
-	if( details.frameId != 0 )
-		return;
-
-	// Make sure that the PAC settings are applied with a small delay
-	console.log( "Reverting proxy settings");
-	chrome.proxy.settings.clear( { scope: 'regular' } );
-};
 
 /**
  * If the connection fails, for exemple, dead proxy, get a new one
@@ -273,6 +276,10 @@ Ahoy.prototype.after_update = function( details ) {
  * Stats functions
  */
 Ahoy.prototype.send_hostname = function ( details ) {
+
+	if( this.disabled )
+		return;
+
 	var parser = document.createElement('a');
 	parser.href = details.url;
 	var hostname = parser.hostname.replace("www.","");
@@ -301,31 +308,10 @@ Ahoy.prototype.event_proxy_updated = function( e ) {
 
 	// Update the fields
  	this.proxy_addr = e.detail.proxy_addr;
-	chrome.storage.local.set( { "proxy_addr": e.detail.proxy_addr } );
-
-	// Only force reload if the current site is a whitelisted site
-	chrome.tabs.query( { active: true, currentWindow: true }, function( tabs ) {
-		var currentTab = tabs[0];
-		var found_site = false;
-		if( e.detail.forceReload ) {
-			// Check if the site is in the list
-			for( var site_id in this.sites_list ) {
-				var site = this.sites_list[ site_id ];
-
-				if ( currentTab.url.indexOf( site ) !== -1 ) {
-					found_site = true;
-				} 
-			}
-
-			if( ! found_site )
-				return;
-
-			// okay, site whitelisted, let's reload 
-	 		chrome.tabs.reload( currentTab.id, { bypassCache: true }, function() {
-	 			console.log("Page reloaded.");
-	 		} );
-	  		console.log( "Reloading page..." );
-	  	}
+	chrome.storage.local.set( { "proxy_addr": e.detail.proxy_addr }, function() {
+		// Enable the proxy
+		if( ! this.disabled )
+			this.enable_proxy();
 	}.bind(this) );
   	
 };
@@ -348,6 +334,9 @@ Ahoy.prototype.check_for_blocked_redirected_site = function( details ) {
 }
 
 Ahoy.prototype.check_for_blocked_site = function( details ) {
+
+	if( this.disabled )
+		return;
 
 	// Array with the IP's that the Blocked Page warning usually have.
 	var warning_ips = [

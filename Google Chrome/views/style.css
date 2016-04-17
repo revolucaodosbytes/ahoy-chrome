@@ -2,7 +2,7 @@ body {
 	font-family: Arial;
 	text-align: center;
 	width: 300px;
-	min-height: 375px;
+	min-height: 325px;
 	background: url("../img/cravo_curto.png") no-repeat;
 	background-position: right bottom;
 	background-size: 75px;
@@ -35,8 +35,13 @@ h1 {
 }
 
 .info .status {
-	font-size: 12px;
-    text-transform: lowercase;
+	font-size: 20px;
+    text-transform: uppercase;
+    margin-top: 10px;
+}
+
+.warning {
+	margin: 15px 0;
     margin-top: 10px;
 }
 
@@ -46,6 +51,14 @@ h1 {
 
 .inactivo {
 	color: darkred;
+	font-size: 14px !important;
+}
+
+.red {
+	border-bottom: 2px solid #CF000F !important;
+	-webkit-box-shadow: inset 0 -2px #CF000F!important;
+	box-shadow: inset 0 -2px #CF000F !important;
+	background: #D91E18 !important;
 }
 
 .buttons button {
@@ -79,6 +92,8 @@ h1 {
   -webkit-box-shadow: none;
   box-shadow: none;
 }
+
+
 
 .waiting { display: none; margin: 10px; }
 .waiting img { width: 20px; height: 20px; }
@@ -152,3 +167,29 @@ article.notas {
 .inquerito a {
 	color: darkred;
 }
+
+.disabled {
+	background: #333333;
+	margin: 0px;
+	border: 1px solid white;
+	color: white;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.disabled footer, .disabled a {
+	color: white !important;
+}
+
+#ahoy-turnedoff .poweron{
+	width: 100px;
+	color: white;
+	margin: 10px;
+}
+
+#ahoy-turnedoff .isDisabled {
+	font-size: 20px;
+	margin: 10px;
+}
+

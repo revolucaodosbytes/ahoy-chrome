@@ -1,19 +1,20 @@
 $(document).ready( function() {
 
-    $('#ahoy-version').text("v" + chrome.app.getDetails().version);
+    $('.ahoy-version').text("v" + chrome.app.getDetails().version);
 
     $('#verSites').click( function() {
         var newURL = "https://sitesbloqueados.pt/?utm_source=ahoy&utm_medium=chrome-popup&utm_campaign=Ahoy%20Chrome";
         chrome.tabs.create({ url: newURL });
     }); 
 
-    chrome.storage.sync.get( [ "proxy_addr" ], function( result) { 
+    chrome.storage.local.get( [ "proxy_addr" ], function( result) { 
+        console.log(result);
         $("#proxyaddr").text( result.proxy_addr );    
     } )
 
-    $(".inquerito").click( function() {
+    /*  $(".inquerito").click( function() {
         chrome.tabs.create({ url: "https://goo.gl/aIG4Re" });
-    })
+    }) */
 
     chrome.tabs.query( { active:true, currentWindow: true }, function(tabs) {
         var currentTab = tabs[0];
@@ -30,14 +31,20 @@ $(document).ready( function() {
     })
 
 
-    $("#forcarProxy").click( function() {
+    $("#actualizarPagina").click( function() {
         if($(this).attr('disabled')) { // HERE
             return false;
         };
 
         chrome.extension.getBackgroundPage().ahoy.update_proxy( true );
+        chrome.extension.getBackgroundPage().ahoy.update_site_list();
+
         $(this).attr('disabled', "");
         
+        //Set the waiting height
+        $(".waiting").height( $(".info").height() );
+
+        // Hide
         $(".info").hide();
         $(".waiting").show();
 
@@ -48,29 +55,27 @@ $(document).ready( function() {
 
             $(".info").show();
             $(".waiting").hide();
+
+            // Refresh the page
+            chrome.tabs.reload();
+
+            window.close();
           
         }, 2000 );
 
     });
 
-     $("#listaSites").click( function() {
-        if($(this).attr('disabled')) { // HERE
-            return false;
-        };
-
-        chrome.extension.getBackgroundPage().ahoy.update_site_list();
-        $(this).attr('disabled', "");
+    $("#desactivarAhoy").click( function() {
+        chrome.extension.getBackgroundPage().ahoy.disable();
+        // Refresh the page
+        chrome.tabs.reload();
         
-        $(".waiting").show();
-
-        setTimeout( function() {
-
-            $("#listaSites").attr('disabled', false);
-
-            $(".waiting").hide();
-          
-        }, 1000 );
-
     });
+
+    $("#activarAhoy").click( function() {
+        chrome.extension.getBackgroundPage().ahoy.enable();
+        // Refresh the page
+        chrome.tabs.reload();
+   });
 
 });

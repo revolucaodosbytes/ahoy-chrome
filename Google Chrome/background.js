@@ -45,3 +45,6 @@ chrome.alarms.onAlarm.addListener( function (alarm) {
 });
 
 
+function getPopup() {
+    return chrome.extension.getViews( { type: "popup" } )[0];
+}
