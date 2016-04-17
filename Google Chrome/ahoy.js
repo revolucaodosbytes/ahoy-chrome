@@ -225,6 +225,10 @@ Ahoy.prototype.update_callbacks = function() {
 
 Ahoy.prototype.update_browse_action_icon = function(tabid, changeInfo, tab) {
 
+	// Do not change the page action if Ahoy! is disabled
+	if( this.disabled )
+		return;
+
 	if( tab.url == undefined ) {
 		return;
 	}
