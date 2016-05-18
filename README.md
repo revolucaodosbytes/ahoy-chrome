@@ -1,5 +1,10 @@
 # Ahoy!
 
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/ljighgeflmhnpljodhpcifcojkpancpm.svg?maxAge=2592000)]()
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/d/ljighgeflmhnpljodhpcifcojkpancpm.svg?maxAge=2592000)]()
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/rating/ljighgeflmhnpljodhpcifcojkpancpm.svg?maxAge=2592000)]()
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/rating-count/ljighgeflmhnpljodhpcifcojkpancpm.svg?maxAge=2592000)]()
+
 Acede a todos os sites bloqueados em Portugal. Uma experiencia de internet livre e sem qualquer tipo de bloqueios.
 
 Basta de limites e bloqueios! A internet é de todos e para todos, basta de termos alguém a dizer o que podemos ou não visitar!
