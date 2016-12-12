@@ -80,7 +80,7 @@ Ahoy.prototype.enable_proxy = function () {
 	    mode: 'pac_script',
 	    pacScript: {
 	      url: this.api_url + "/api/pac?proxy_addr="+this.proxy_addr,
-	      mandatory: true
+	      mandatory: false
 	    }
 	  };
 	  

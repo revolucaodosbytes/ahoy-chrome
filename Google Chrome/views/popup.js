@@ -12,9 +12,9 @@ $(document).ready( function() {
         $("#proxyaddr").text( result.proxy_addr );    
     } )
 
-    /*  $(".inquerito").click( function() {
-        chrome.tabs.create({ url: "https://goo.gl/aIG4Re" });
-    }) */
+    $(".inquerito").click( function() {
+        chrome.tabs.create({ url: "https://donativos.ahoy.pro/?utm_source=ahoy&utm_medium=chrome-popup&utm_campaign=Ahoy%20Chrome" });
+    })
 
     chrome.tabs.query( { active:true, currentWindow: true }, function(tabs) {
         var currentTab = tabs[0];
