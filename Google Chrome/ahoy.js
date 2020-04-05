@@ -348,6 +348,7 @@ Ahoy.prototype.check_for_blocked_site = function( details ) {
 	// Array with the IP's that the Blocked Page warning usually have.
 	var warning_ips = [
 		"195.23.113.202", 	// NOS
+		'195.23.113.206', 	// NOS IGAC		
 		"213.13.145.120", 	// MEO
 		"212.18.182.164",	// Vodafone
 		"212.18.182.197",	// Vodafone
